@@ -1,0 +1,56 @@
+<mat-accordion *ngFor="let record of actives; let i = index;" style="padding:5px;">
+  <mat-expansion-panel #active [expanded]="all" [ngClass]="{'deleted': record.deleted, 'added':record.added && !record.deleted, 'normal':!record.added && !record.deleted}" >
+    <mat-expansion-panel-header [ngClass]="{'deleted-header': record.deleted, 'added-header': record.added && !record.deleted}" >
+      <mat-panel-title style="font-size:18px; display:flex; align-items: center" >
+        <strong [ngClass]="{'highlighted': record.tag.toLowerCase().includes(text.toLowerCase()) && text !== ''}">{{record.tag}}</strong>&nbsp;
+        <button class="regularButton" style="padding-left:5px; padding-right:5px; padding-top:3px; padding-bottom:1px;" *ngIf="record.deleted" (click)="active.expanded = !active.expanded; resetTag(i);"><img src="../assets/undo.png" style="width:15px; height:auto;"></button>
+        <button class="regularButton" style="padding-left:5px; padding-right:5px; padding-top:2px; padding-bottom:0px;" *ngIf="!record.deleted" (click)="active.expanded = !active.expanded; addDelete(i, -1)"><img src="../assets/delete.png" style="width:15px; height:auto;"></button>
+      </mat-panel-title>
+      </mat-expansion-panel-header>
+        <div *ngFor="let value of record.values; let j = index">
+          <div style="padding-top:20px;" [ngClass]="{'deleted-record-panel': record.deleted && value.deleted, 'deleted-tags-panel': value.deleted && value.tagsLevel2 !== null && value.tagsLevel2.length !== 0, 'deleted-panel': value.deleted, 'edited': value.edited && !value.deleted, 'added': value.added && !value.edited && !value.deleted}">
+            <div style="padding:5px; position:relative;">
+              <div style="position:relative;" [ngClass]="{'padding-deleted': value.deleted && value.tagsLevel2 !== null && value.tagsLevel2.length !== 0}">
+                <span #current id="id:{{i}}:{{j}}" [ngClass]="{'highlighted': value.newValue.toLowerCase().includes(text.toLowerCase()) && text !== ''}" [attr.contenteditable]="!value.deleted && !record.deleted" (blur)="handleUpdate(current.innerText, i, j);" style="position:relative; font-size:16px; margin-bottom:20px;">{{value.value}}</span>
+
+                <span style="float:right; display:flex; align-content:right">
+                  <button class="regularButton" style="padding-left:5px; padding-right:5px; padding-top:3px; padding-bottom:1px;" *ngIf="(value.deleted || value.edited) && !record.deleted" (click)="reset(i, j);"><img src="../assets/undo.png" style="width:15px; height:auto;"></button>
+                  <span *ngIf="!value.deleted && !record.deleted">&nbsp;</span>
+                  <button class="regularButton" style="padding-right:5px; padding-left:5px; padding-top:2px; padding-bottom:0px;" *ngIf="!value.deleted && !record.deleted" (click)="addDelete(i, j)" ><img src="../assets/delete.png" style="width:15px; height:auto;"></button>
+              </span>
+            </div>
+
+            <div *ngIf="value.tagsLevel2 !== null && value.tagsLevel2.length !== 0" style="position:relative; padding-bottom:5px;">
+              <mat-accordion *ngFor="let tags of value.tagsLevel2; let k = index;" style-="padding:5px;">
+                <mat-expansion-panel #activeLevel2 [expanded]="all" [ngClass]="{'deleted': tags.deleted, 'added':tags.added && !tags.deleted, 'normal':!tags.added && !tags.deleted}" style="width:100%" >
+                  <mat-expansion-panel-header [ngClass]="{'deleted-header': tags.deleted, 'added-header': tags.added && !tags.deleted}" >
+                   <mat-panel-title style="font-size:18px; display:flex; align-items: center" >
+                     <strong [ngClass]="{'highlighted': tags.tag.toLowerCase().includes(text.toLowerCase()) && text !== ''}">{{tags.tag}}</strong>&nbsp;
+                     <button class="regularButton" style="padding-left:5px; padding-right:5px; padding-top:3px; padding-bottom:1px;" *ngIf="tags.deleted && !value.deleted && !record.deleted" (click)="activeLevel2.expanded = !activeLevel2.expanded; resetTag2(i, j, k);"><img src="../assets/undo.png" style="width:15px; height:auto;"></button>
+                     <button class="regularButton" style="padding-right:5px; padding-left:5px; padding-top:2px; padding-bottom:0px;" (click)="activeLevel2.expanded = !activeLevel2.expanded; addDelete2(i, j, k, -1)" *ngIf="!tags.deleted && !value.deleted && !record.deleted"><img src="../assets/delete.png" style="width:15px; height:auto;"></button>
+                   </mat-panel-title>
+                  </mat-expansion-panel-header>
+                    <div *ngFor="let values of tags.valuesLevel2; let l = index;">
+                      <div style="padding-top:20px;" [ngClass]="{'deleted-record-panel': tags.deleted && values.deleted, 'deleted-panel': values.deleted, 'edited': values.edited && !values.deleted, 'added': values.added && !values.edited && !values.deleted}">
+                        <div style="padding:5px; position:relative;">
+                          <span #current2 id="id:{{i}}:{{j}}:{{k}}:{{l}}" [ngClass]="{'highlighted': values.newValue.toLowerCase().includes(text.toLowerCase()) && text !== ''}" [attr.contenteditable]="!value.deleted && !record.deleted && !tags.deleted && !values.deleted" (blur)="handleUpdate2(current2.innerText, i, j, k, l);" style="position:relative; font-size:16px; margin-bottom:20px; min-width:250px;">{{values.value}}</span>
+
+                          <span style="float:right; display:flex; align-content:right">
+                            <button class="regularButton" style="padding-left:5px; padding-right:5px; padding-top:3px; padding-bottom:1px;" (click)="reset2(i, j, k, l);" *ngIf="(values.deleted || values.edited) && !tags.deleted && !value.deleted && !record.deleted" ><img src="../assets/undo.png" style="width:15px; height:auto;"></button>
+                            <span *ngIf="!value.deleted && !record.deleted">&nbsp;</span>
+                            <button class="regularButton" style="padding-right:5px; padding-left:5px; padding-top:2px; padding-bottom:0px;" (click)="addDelete2(i, j, k, l)" *ngIf="!values.deleted && !tags.deleted && !value.deleted && !record.deleted"><img src="../assets/delete.png" style="width:15px; height:auto;"></button>
+                          </span>
+                        </div>
+                      </div>
+                      <mat-divider  *ngIf="(l+1) != tags.valuesLevel2.length"></mat-divider>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
+            </div>
+          </div>
+          <mat-divider  *ngIf="(j+1) != record.values.length"></mat-divider>
+        </div>
+  </mat-expansion-panel>
+</mat-accordion>
+

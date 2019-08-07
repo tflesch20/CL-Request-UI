@@ -1,0 +1,40 @@
+<h2 mat-dialog-title style="padding:0; font-size:25px"><strong>Add Request?</strong>&nbsp;<span style="font-size:14px">(After entering input, click off text boxes to check if request is unique)</span></h2>
+<mat-dialog-content>
+<div style="padding:5px;">
+  <span style="padding-right:90px">Request Tag:&emsp;</span>
+  <input style="width:600px; min-width:250px" [(ngModel)]="data.requestTag" placeholder="Select or Enter a new Request Tag..." [matAutocomplete]="autoTag" autocomplete="false" (keyup)="_tagFilter($event.target.value);" (blur)="checkValid()" (focus)="focused()" >
+  <mat-autocomplete #autoTag="matAutocomplete">
+    <mat-option *ngFor="let element of modifiedTags" style="height:25px;font-size:14px" [value]="element">{{element}}</mat-option>
+  </mat-autocomplete>
+</div>
+<div style="padding:5px;">
+  <span style="padding-right:74px">Request Value:&emsp;</span>
+  <input style="width:600px; min-width:250px" [(ngModel)]="data.requestValue" placeholder="Enter a Request Value..." autocomplete="false" (blur)="checkValid()" (focus)="focused()" >
+</div>
+<div *ngIf="level2 || fixedLevel2">
+  <div style="padding:5px;">
+    <span style="padding-right:15px;">Request Tag (level 2):&emsp;</span>
+    <input style="width:600px; min-width:250px" [(ngModel)]="data.requestTagLevel2" placeholder="Select or Enter a new Request Tag (level 2)..." [matAutocomplete]="autoTag2" autocomplete="false" (keyup)="_tag2Filter($event.target.value)" (blur)="checkValid()" (focus)="focused()">
+    <mat-autocomplete #autoTag2="matAutocomplete">
+      <mat-option *ngFor="let element of modifiedTags2" style="height:25px;font-size:14px" [value]="element">{{element}}</mat-option>
+    </mat-autocomplete>
+  </div>
+  <div style="padding:5px;">
+    <span>Request Value (level 2):&emsp;</span>
+    <input style="width:600px; min-width:250px" [(ngModel)]="data.requestValueLevel2" placeholder="Enter a Request Value (level 2)..." autocomplete="false" (blur)="checkValid()" (focus)="focused()">
+  </div>
+</div>
+
+<div style="padding:5px;">
+  <button *ngIf="!level2 && !fixedLevel2" (click)="level2 = true; data.requestTagLevel2 = ''; data.requestValueLevel2 = '';" class="dialogButton"><span style="display:flex; align-items: center;"><img src="../assets/invertedPlus.png" style="width:15px; height:auto;">&nbsp;&nbsp;<b>Add Level 2 Request Tag/Value</b></span></button>
+  <button *ngIf="level2 && !fixedLevel2" (click)="level2 = false; data.requestTagLevel2 = ''; data.requestValueLevel2 = ''; checkValid()" class="dialogButton"><span style="display:flex; align-items: center;"><img src="../assets/invertedMinus.png" style="width:15px; height:auto;">&nbsp;&nbsp;<b>Remove Level 2 Request Tag/Value</b></span></button>
+</div>
+
+<div *ngIf="duplicate && data.requestValue !== '' && !((data.requestTagLevel2 === '' || data.requestValueLevel2 === '') && (level2 || fixedLevel2)) && !focus" style="color:lightcoral">Please Enter a <strong>Unique</strong> Request Tag/Value Pair!</div>
+<div *ngIf="!duplicate && data.requestTag !== '' && data.requestValue !== '' && !((data.requestTagLevel2 === '' || data.requestValueLevel2 === '') && (level2 || fixedLevel2)) && !focus" style="color:lightgreen">Unique Request!</div>
+<div *ngIf="data.requestTag === '' || data.requestValue === '' || ((data.requestTagLevel2 === '' || data.requestValueLevel2 === '') && (level2 || fixedLevel2)) ">Please Enter a Request Tag/Value Pair!</div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button class="dialogButton" id="add" [disabled]="data.requestTag === '' || data.requestValue === '' || ((data.requestTagLevel2 === '' || data.requestValueLevel2 === '') && (level2 || fixedLevel2)) || focus || duplicate" [mat-dialog-close]="data" cdkFocusInitial><strong>Add</strong></button>&nbsp;
+  <button mat-button class="dialogButton" [mat-dialog-close]=null><strong>Cancel</strong></button>
+</mat-dialog-actions>

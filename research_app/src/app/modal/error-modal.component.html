@@ -1,0 +1,15 @@
+<h2 mat-dialog-title style="padding:0; font-size:25px">Error: Value Already Exists for Tag!</h2>
+<ng-template [ngIf]="data.edited">
+  <mat-dialog-content>
+    Request Tag: <strong>{{data.tag}}</strong> already has a New Edited Request Value: <strong>{{data.newValue}}</strong>
+  </mat-dialog-content>
+</ng-template>
+<ng-template [ngIf]="!data.edited">
+  <mat-dialog-content>
+    Request Tag: <strong>{{data.tag}}</strong> already has a Request Value: <strong>{{data.newValue}}</strong>
+  </mat-dialog-content>
+</ng-template>
+<mat-dialog-actions>
+  <button class="dialogButton" mat-stroked-button [mat-dialog-close]><strong>Undo</strong></button>
+</mat-dialog-actions>
+
