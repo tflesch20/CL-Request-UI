@@ -1,17 +1,17 @@
 <!-- <div class="container animated fadeInDown" id="navbar"> -->
-<div class="header" id="navbar" style="z-index: 1">
+<div class="header" id="navbar" style="z-index: 1; overflow-y:hidden">
   <nav style="background-color:rgb(95, 95, 140); min-height:45px; max-height:100px; padding-left:10px; padding-right:10px; padding-top:6px; overflow:auto">
     <span style="color:white; font-family:Verdana, Geneva, Tahoma, sans-serif; font-size:28px; cursor:default; padding-right:7px">CL Request Non-Static Values CLS</span>
     <img (click)="warning();" src="../assets/help.png" style="width:22px; height:auto; position:sticky; cursor:pointer;" title="Click for Help">
-    <span style="float:right; font-family:Verdana, Geneva, Tahoma, sans-serif; font-size:14px; padding:10px;color:white">Show All Tags/Values&nbsp;<mat-checkbox #checkbox color="primary" style="color:white"></mat-checkbox></span>
     <!-- <div style="bottom:0; width:100%"><mat-progress-bar mode="indeterminate"></mat-progress-bar></div> -->
   </nav>
-  <div style="padding-top:10px; display:flex; align-items:center; overflow:auto; padding-top:5px; padding-bottom:5px;">
-    <div class="fake-input" style="width:calc(100% - 586px); min-width:250px; height:29px; display:flex; align-items: center; border:2px solid rgb(95, 95, 140); background-color:rgb(201,201,218)">
+  <div style="padding-top:10px; display:flex; align-items:center; overflow:auto; padding-top:5px; padding-bottom:5px; overflow-y:hidden">
+    <div class="fake-input" style="width:calc(100% - 770px); min-width:250px; height:29px; display:flex; align-items: center; border:2px solid rgb(95, 95, 140); background-color:rgb(201,201,218)">
       <img id="image" (click)="search(input); allSearch = checkbox.checked; previous = input; input = '';" src="../assets/search.png" style="cursor:pointer;width:20px; height:auto; top:4.5px; left:10px;">
       <input *ngIf="previous === ''" style="padding-left:30px" [(ngModel)]="input" (keydown.enter)="searchEnter(checkbox.checked);" placeholder='Type in a word then click the magnifying glass to list the request records containing that word...'>
       <input *ngIf="previous !== ''" style="padding-left:30px" [(ngModel)]="input" (keydown.enter)="searchEnter(checkbox.checked);" placeholder='Previous Search: "{{previous}}"'>
-    </div>&nbsp;
+    </div>
+    <span style="float:right; font-size:14px; padding:5px; color:black; border: 2px solid rgb(95, 95, 140)">Show All Tags/Values&nbsp;<mat-checkbox #checkbox color="primary" style="color:black"></mat-checkbox></span>&nbsp;
     <button (click)="openDialog()" class="regularButton"><span style="display:flex; align-items: center;"><img src="../assets/plus.png" style="width:15px; height:auto;">&nbsp;&nbsp;<b>Add Request</b></span></button> &nbsp;
     <button class="regularButton" style="padding-top:4.5px; padding-bottom:4.55px;"><span style="display:flex; align-items: center;"><img src="../assets/change.png" style="width:auto; height:20px;">&nbsp;&nbsp;<b>View Changes</b></span></button>&nbsp;
     <button (click)="saveChanges()" class="regularButton"><span style="display:flex; align-items: center;"><img src="../assets/save.png" style="width:15px; height:auto;">&nbsp;&nbsp;<b>Save Changes</b></span></button>&nbsp;
