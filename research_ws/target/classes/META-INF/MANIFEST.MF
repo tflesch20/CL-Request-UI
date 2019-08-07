@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: research-ws
+Implementation-Version: 1.0-SNAPSHOT
+Built-By: M34905
+Specification-Title: research-ws
+Implementation-Vendor-Id: com.northgrum
+Build-Jdk: 1.8.0_201
+Specification-Version: 1.0-SNAPSHOT
+Created-By: Maven Integration for Eclipse
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.northgrum.researchws.entities">
+<class name="CLChange" table="CL_CHANGE">
+		<id name="ID" column="ID"></id>
+		<property name="dateLog" column="DATE_LOG" />
+		<property name="action" column="ACTION" />
+		<property name="requestTag" column="REQUEST_TAG" />
+		<property name="requestValue" column="REQUEST_VALUE" />
+		<property name="requestTagLevel2" column="REQUEST_TAG_LEVEL_2" />
+		<property name="requestValueLevel2" column="REQUEST_VALUE_LEVEL_2" />
+		<property name="edited" column="EDITED">
+	</class>
+</hibernate-mapping>
