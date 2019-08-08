@@ -1,12 +1,22 @@
 <h2 mat-dialog-title style="padding:0; font-size:25px">Error: Value Already Exists for Tag!</h2>
-<ng-template [ngIf]="data.edited">
+<ng-template [ngIf]="data.edited && (data.value == null || data.tagLevel2 == null)">
   <mat-dialog-content>
     Request Tag: <strong>{{data.tag}}</strong> already has a New Edited Request Value: <strong>{{data.newValue}}</strong>
   </mat-dialog-content>
 </ng-template>
-<ng-template [ngIf]="!data.edited">
+<ng-template [ngIf]="!data.edited && (data.value == null || data.tagLevel2 == null)">
   <mat-dialog-content>
     Request Tag: <strong>{{data.tag}}</strong> already has a Request Value: <strong>{{data.newValue}}</strong>
+  </mat-dialog-content>
+</ng-template>
+<ng-template [ngIf]="data.edited && data.value != null && data.tagLevel2 != null">
+  <mat-dialog-content>
+    Request Tag: <strong>{{data.tag}}</strong> Request Value: <strong>{{data.value}}</strong> Request Tag (level 2): <strong>{{data.tagLevel2}}</strong> already has a New Edited Request Value (level 2): <strong>{{data.newValue}}</strong>
+  </mat-dialog-content>
+</ng-template>
+<ng-template [ngIf]="!data.edited && data.value != null && data.tagLevel2 != null">
+  <mat-dialog-content>
+    Request Tag: <strong>{{data.tag}}</strong> Request Value: <strong>{{data.value}}</strong> Request Tag (level 2): <strong>{{data.tagLevel2}}</strong> already has a Request Value (level 2): <strong>{{data.newValue}}</strong>
   </mat-dialog-content>
 </ng-template>
 <mat-dialog-actions>

@@ -8,7 +8,7 @@
           <!-- <div style="bottom:0; width:100%"><mat-progress-bar mode="indeterminate"></mat-progress-bar></div> -->
         </nav>
         <div style="padding-top:10px; display:flex; align-items:center; overflow:auto; padding-top:5px; padding-bottom:5px;">
-          <div class="fake-input" style="width:calc(100% - 586px); min-width:250px; height:29px; display:flex; align-items: center; border:2px solid rgb(95, 95, 140); background-color:rgb(201,201,218)">
+          <div class="fake-input" style="width:calc(100% - 581px); min-width:250px; height:29px; display:flex; align-items: center; border:2px solid rgb(95, 95, 140); background-color:rgb(201,201,218)">
             <img id="image" (click)="search(input); previous = input; input = '';" src="../assets/search.png" style="cursor:pointer;width:20px; height:auto; top:4.5px; left:10px;">
             <input *ngIf="previous === ''" style="padding-left:30px" [(ngModel)]="input" (keydown.enter)="searchEnter(checkbox.checked);" placeholder='Type in a word then click the magnifying glass icon or press the enter key to list the request records containing that word...'>
             <input *ngIf="previous !== ''" style="padding-left:30px" [(ngModel)]="input" (keydown.enter)="searchEnter(checkbox.checked);" placeholder='Previous Search: "{{previous}}"'>

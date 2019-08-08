@@ -36,7 +36,8 @@ export class ListComponent {
     if (!this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].deleted) {
       document.getElementById('id:' + tagIndex + ':' + valueIndex + ':' + tag2Index + ':' + value2Index).innerText
       = this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].value;
-      this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].newValue = null;
+      this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].newValue =
+      this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].value;
       this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].edited = false;
     } else {
       this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].date = new Date();
@@ -74,6 +75,8 @@ export class ListComponent {
             panelClass: ['dialog'],
             data: {
               tag: this.actives[tagIndex].tag,
+              value: null,
+              tagLevel2: null,
               newValue: this.actives[tagIndex].values[i].value,
               edited: false
             },
@@ -92,6 +95,8 @@ export class ListComponent {
             panelClass: ['dialog'],
             data: {
               tag: this.actives[tagIndex].tag,
+              value: null,
+              tagLevel2: null,
               newValue: this.actives[tagIndex].values[i].newValue,
               edited: true
             },
@@ -111,7 +116,6 @@ export class ListComponent {
     } else {
       this.actives[tagIndex].values[valueIndex].edited = false;
     }
-    console.log(this.actives[tagIndex]);
   }
 
   handleUpdate2(newValue: string, tagIndex: number, valueIndex: number, tag2Index: number, value2Index: number) {
@@ -121,19 +125,44 @@ export class ListComponent {
       for (let i = 0; i < this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2.length; i++) {
         const tempValue2 =
         this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[i].value.trim().toLowerCase();
-        if (tempValue.localeCompare(tempValue2) === 0 && i !== valueIndex) {
+
+        if (tempValue.localeCompare(tempValue2) === 0 && i !== value2Index) {
           const dialogRef = this.dialog.open(ErrorModalComponent, {
             panelClass: ['dialog'],
             data: {
-              tag: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].tag,
-              newValue: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[i].value
+              tag: this.actives[tagIndex].tag,
+              value: this.actives[tagIndex].values[valueIndex].value,
+              tagLevel2: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].tag,
+              newValue: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[i].value,
+              edited: false
             },
             position: {top: '30%'},
             disableClose: false
           });
           dialogRef.afterClosed().subscribe(result => {
             document.getElementById('id:' + tagIndex + ':' + valueIndex + ':' + tag2Index + ':' + value2Index).innerText =
-            this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[i].value;
+            this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].value;
+          });
+          return;
+        }
+        if (tempValue.localeCompare(this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].
+          valuesLevel2[i].newValue.trim().toLowerCase()) === 0 &&
+        i !== value2Index) {
+          const dialogRef = this.dialog.open(ErrorModalComponent, {
+            panelClass: ['dialog'],
+            data: {
+              tag: this.actives[tagIndex].tag,
+              value: this.actives[tagIndex].values[valueIndex].value,
+              tagLevel2: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].tag,
+              newValue: this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[i].newValue,
+              edited: true
+            },
+            position: {top: '30%'},
+            disableClose: false
+          });
+          dialogRef.afterClosed().subscribe(result => {
+            document.getElementById('id:' + tagIndex + ':' + valueIndex + ':' + tag2Index + ':' + value2Index).innerText =
+            this.actives[tagIndex].values[valueIndex].tagsLevel2[tag2Index].valuesLevel2[value2Index].value;
           });
           return;
         }

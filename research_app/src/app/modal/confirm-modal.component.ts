@@ -10,5 +10,5 @@ export class ConfirmModalComponent {
   constructor(public dialogRef: MatDialogRef<ConfirmModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ListData) {}
 
-  }
 }
+
