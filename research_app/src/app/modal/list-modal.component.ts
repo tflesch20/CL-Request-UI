@@ -9,4 +9,5 @@ import { ListData } from '../ListData';
 export class ListModalComponent {
   constructor(public dialogRef: MatDialogRef<ListModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ListData) {
+  }
 }
