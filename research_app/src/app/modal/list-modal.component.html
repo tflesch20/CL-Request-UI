@@ -1,0 +1,64 @@
+<h2 mat-dialog-title style="padding:0; font-size:25px">View Changes</h2>
+<mat-dialog-content>
+  <div style="border:2px solid white; padding-bottom:5px">
+    <span style="font-size:22px; padding:5px; padding-top:10px; padding-bottom:10px">OLD SAVED Changes</span>
+    <div style="height:200px; width:1200px; overflow-y: scroll; padding:5px; padding-top:10px; padding-bottom:10px">
+        <table border="2" style="width:100%; ">
+          <thead>
+              <tr>
+                <th>Date</th>
+                <th>Action</th>
+                <th>Request Tag</th>
+                <th>Request Value</th>
+                <th>Request Tag (level 2)</th>
+                <th>Request Value (level 2)</th>
+                <th>View Record?</th>
+              </tr>
+          </thead>
+          <tbody *ngFor="let change of data.changes" style="text-align: center !important; width:100%">
+            <tr>
+              <td>{{change.dateLog}}</td>
+              <td>{{change.action}}</td>
+              <td>{{change.requestTag}}</td>
+              <td>{{change.requestValue}}</td>
+              <td>{{change.requestTagLevel2}}</td>
+              <td>{{change.requestValueLevel2}}</td>
+              <td><button class="dialogButton" mat-stroked-button [mat-dialog-close]="change"><img src="../../assets/list.png" style="width:15px; height:auto">&nbsp;<strong>View</strong></button></td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+  <div style="border: 2px solid white; padding-top:5px;">
+      <span style="font-size:22px; padding:5px; padding-top:10px; padding-bottom:10px;">NEW UNSAVED Changes <span style="font-size:14px">(* - all records under non-starred tag(s)/value(s) are affected)</span></span>
+      <div style="height:200px; width:1200px; overflow-y: scroll; padding:5px; padding-top:10px; padding-bottom:10px;">
+          <table border="2" style="width:100%">
+           <thead>
+             <tr>
+               <th>Date</th>
+               <th>Action</th>
+               <th>Request Tag</th>
+               <th>Request Value</th>
+               <th>Request Tag (level 2)</th>
+               <th>Request Value (level 2)</th>
+               <th>View Record?</th>
+             </tr>
+           </thead>
+           <tbody *ngFor="let change of data.newChanges" style="text-align: center !important; width:100%">
+             <tr >
+              <td >{{change.dateLog}}</td>
+              <td>{{change.action}}</td>
+              <td>{{change.requestTag}}</td>
+              <td>{{change.requestValue}}</td>
+              <td>{{change.requestTagLevel2}}</td>
+              <td>{{change.requestValueLevel2}}</td>
+              <td><button class="dialogButton" mat-stroked-button [mat-dialog-close]="change"><img src="../../assets/list.png" style="width:15px; height:auto">&nbsp;<strong>View</strong></button></td>
+             </tr>
+           </tbody>
+          </table>
+      </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button class="dialogButton" mat-stroked-button [mat-dialog-close]=null><strong>Exit</strong></button>
+</mat-dialog-actions>

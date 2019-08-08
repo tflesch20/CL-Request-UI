@@ -16,6 +16,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {ModalComponent} from './modal/modal.component';
 import {WarningModalComponent} from './modal/warning-modal.component';
 import {ErrorModalComponent} from './modal/error-modal.component';
+import {ConfirmModalComponent} from './modal/confirm-modal.component';
+import {ListModalComponent} from './modal/list-modal.component';
 import {OperationService} from './operation.service';
 
 @NgModule({
@@ -24,7 +26,9 @@ import {OperationService} from './operation.service';
     ListComponent,
     ModalComponent,
     WarningModalComponent,
-    ErrorModalComponent
+    ErrorModalComponent,
+    ConfirmModalComponent,
+    ListModalComponent
   ],
   imports: [
     BrowserModule,
@@ -39,7 +43,7 @@ import {OperationService} from './operation.service';
     HttpClientModule,
     FormsModule
   ],
-  entryComponents: [ModalComponent, WarningModalComponent, ErrorModalComponent],
+  entryComponents: [ModalComponent, WarningModalComponent, ErrorModalComponent, ConfirmModalComponent, ListModalComponent],
   providers: [
     OperationService
   ],

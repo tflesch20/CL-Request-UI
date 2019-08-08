@@ -11,6 +11,8 @@ import {
 import { MatDialog } from '@angular/material';
 import { ModalComponent } from './modal/modal.component';
 import { WarningModalComponent } from './modal/warning-modal.component';
+import { ConfirmModalComponent } from './modal/confirm-modal.component';
+import { ListModalComponent } from './modal/list-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -19,13 +21,14 @@ import { WarningModalComponent } from './modal/warning-modal.component';
 })
 export class AppComponent {
   actives: CLActive[];
+  changes: CLChange[];
   tags: any[];
   tagsLevel2: any[];
   input = '';
   tagValues: Tag[];
   modifiedTagValues: Tag[];
-  allSearch = false;
   previous = '';
+  newChanges: CLChange[];
 
   constructor(
     private operationService: OperationService,
@@ -40,12 +43,17 @@ export class AppComponent {
     this.operationService.getRequestTagsLevel2().subscribe(tagsLevel2 => {
       this.tagsLevel2 = tagsLevel2;
     });
+
+    this.operationService.getChanges().subscribe(changes => {
+      this.changes = changes;
+      console.log(this.changes);
+    });
   }
 
   warning() {
     const dialogRef = this.dialog.open(WarningModalComponent, {
       panelClass: ['dialog'],
-      position: { top: '20%' }
+      position: { top: '10%' }
     });
   }
 
@@ -237,13 +245,17 @@ export class AppComponent {
               .toLowerCase();
             if (tempValue === otherValue) {
               if (this.tagValues[i].values[j].tagsLevel2) {
-                const tempTag2: string = result.requestTagLevel2.trim().toLowerCase();
+                const tempTag2: string = result.requestTagLevel2
+                  .trim()
+                  .toLowerCase();
                 for (
                   let k = 0;
                   k < this.tagValues[i].values[j].tagsLevel2.length;
                   k++
                 ) {
-                  const otherTag2: string = this.tagValues[i].values[j].tagsLevel2[k].tag
+                  const otherTag2: string = this.tagValues[i].values[
+                    j
+                  ].tagsLevel2[k].tag
                     .trim()
                     .toLowerCase();
                   if (tempTag2 === otherTag2) {
@@ -257,9 +269,8 @@ export class AppComponent {
                         .length;
                       l++
                     ) {
-                      const otherValue2: string = this.tagValues[i].values[j].tagsLevel2[
-                        k
-                      ].valuesLevel2[l].value;
+                      const otherValue2: string = this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].value;
                       if (tempValue2.localeCompare(otherValue2) < 0) {
                         const val2_1: ValueLevel2 = {
                           value: result.requestValueLevel2,
@@ -500,10 +511,7 @@ export class AppComponent {
         values: []
       };
 
-      if (
-        result.requestTagLevel2 !== '' &&
-        result.requestValueLevel2 !== ''
-      ) {
+      if (result.requestTagLevel2 !== '' && result.requestValueLevel2 !== '') {
         val2_8 = {
           value: result.requestValueLevel2,
           newValue: result.requestValueLevel2,
@@ -531,15 +539,15 @@ export class AppComponent {
   }
 
   addToModified(index: number, requestTag: string) {
-      let found = false;
-      for (let i = 0; i < this.modifiedTagValues.length; i++) {
-        if (this.modifiedTagValues[i].tag === requestTag) {
-          found = true;
-        }
+    let found = false;
+    for (let i = 0; i < this.modifiedTagValues.length; i++) {
+      if (this.modifiedTagValues[i].tag === requestTag) {
+        found = true;
       }
-      if (!found) {
-        this.modifiedTagValues.push(this.tagValues[index]);
-      }
+    }
+    if (!found) {
+      this.modifiedTagValues.push(this.tagValues[index]);
+    }
   }
 
   addToAutoComplete(requestTag: string, requestTagLevel2: string) {
@@ -548,7 +556,9 @@ export class AppComponent {
       if (requestTag.toLowerCase() === this.tags[i].toLowerCase()) {
         foundTag = true;
         break;
-      } else if (requestTag.toLowerCase().localeCompare(this.tags[i].toLowerCase()) < 0) {
+      } else if (
+        requestTag.toLowerCase().localeCompare(this.tags[i].toLowerCase()) < 0
+      ) {
         this.tags.splice(i, 0, requestTag);
         foundTag = true;
         break;
@@ -561,7 +571,11 @@ export class AppComponent {
     for (let i = 0; i < this.tagsLevel2.length; i++) {
       if (requestTagLevel2.toLowerCase() === this.tagsLevel2[i].toLowerCase()) {
         return;
-      } else if (requestTagLevel2.toLowerCase().localeCompare(this.tagsLevel2[i].toLowerCase()) < 0) {
+      } else if (
+        requestTagLevel2
+          .toLowerCase()
+          .localeCompare(this.tagsLevel2[i].toLowerCase()) < 0
+      ) {
         this.tagsLevel2.splice(i, 0, requestTagLevel2);
         return;
       }
@@ -570,167 +584,389 @@ export class AppComponent {
   }
 
   saveChanges() {
-    for (let i = 0; i < this.tagValues.length; i++) {
-      if (this.tagValues[i].deleted) {
-        // const tempActive: CLActive = {
-        //   requestTag: this.tagValues[i].tag,
-        //   requestValue: null,
-        //   requestTagLevel2: null,
-        //   requestValueLevel2: null
-        // };
-        // this.operationService.deleteActiveTag(tempActive).subscribe(status => {
-        //   console.log('Status of Deleting Request Tag: ' + status);
-        // });
-        this.tagValues.splice(i, 1);
-        i--;
-      } else {
-        this.tagValues[i].added = false;
-        for (let j = 0; j < this.tagValues[i].values.length; j++) {
-          if (this.tagValues[i].values[j].deleted) {
-            // const tempActive: CLActive = {
-            //   requestTag: this.tagValues[i].tag,
-            //   requestValue: this.tagValues[i].values[j].value,
-            //   requestTagLevel2: null,
-            //   requestValueLevel2: null
-            // };
-            // this.operationService.deleteActiveValue(tempActive).subscribe(status => {
-            //   console.log('Status of Deleting Request Value: ' + status);
-            // });
-            this.tagValues[i].values.splice(j, 1);
-            j--;
+    this.findNewChanges();
+
+    const dialogRef = this.dialog.open(ConfirmModalComponent, {
+      panelClass: ['list-dialog'],
+      position: { top: '30%' },
+      data: {
+        changes: this.changes,
+        newChanges: this.newChanges
+      },
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // add new changes to change log
+        for(let i = 0; i < this.newChanges.length; i++) {
+          this.newChanges[i].dateLog = this.newChanges[i].dateLog.substring(0, this.newChanges[i].dateLog.indexOf(" "));
+          this.changes.push(this.newChanges[i]);
+        }
+        this.newChanges = [];
+        for (let i = 0; i < this.tagValues.length; i++) {
+          if (this.tagValues[i].deleted) {
+            this.tagValues.splice(i, 1);
+            i--;
           } else {
-            if (this.tagValues[i].values[j].tagsLevel2) {
-              for (let k = 0; k < this.tagValues[i].values[j].tagsLevel2.length; k++) {
-                if (this.tagValues[i].values[j].tagsLevel2[k].deleted) {
-                  // const tempActive: CLActive = {
-                  //   requestTag: this.tagValues[i].tag,
-                  //   requestValue: this.tagValues[i].values[j].value,
-                  //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
-                  //   requestValueLevel2: null
-                  // };
-                  // this.operationService.deleteActiveTag2(tempActive).subscribe(status => {
-                  //   console.log('Status of Deleting Request Tag (level 2): ' + status);
-                  // });
-                  this.tagValues[i].values[j].tagsLevel2.splice(k, 1);
-                  k--;
-                } else {
-                  this.tagValues[i].values[j].tagsLevel2[k].added = false;
-                  for (let l = 0; l < this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length; l++) {
-                    if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].added &&
-                      !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].deleted) {
-                      if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].newValue !==
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value) {
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value =
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].newValue;
+            this.tagValues[i].added = false;
+            for (let j = 0; j < this.tagValues[i].values.length; j++) {
+              if (this.tagValues[i].values[j].deleted) {
+                this.tagValues[i].values.splice(j, 1);
+                j--;
+              } else {
+                if (this.tagValues[i].values[j].tagsLevel2) {
+                  for (
+                    let k = 0;
+                    k < this.tagValues[i].values[j].tagsLevel2.length;
+                    k++
+                  ) {
+                    if (this.tagValues[i].values[j].tagsLevel2[k].deleted) {
+                      this.tagValues[i].values[j].tagsLevel2.splice(k, 1);
+                      k--;
+                    } else {
+                      this.tagValues[i].values[j].tagsLevel2[k].added = false;
+                      for (
+                        let l = 0;
+                        l <
+                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2
+                          .length;
+                        l++
+                      ) {
+                        if (
+                          this.tagValues[i].values[j].tagsLevel2[k]
+                            .valuesLevel2[l].added &&
+                          !this.tagValues[i].values[j].tagsLevel2[k]
+                            .valuesLevel2[l].deleted
+                        ) {
+                          if (
+                            this.tagValues[i].values[j].tagsLevel2[k]
+                              .valuesLevel2[l].newValue !==
+                            this.tagValues[i].values[j].tagsLevel2[k]
+                              .valuesLevel2[l].value
+                          ) {
+                            this.tagValues[i].values[j].tagsLevel2[
+                              k
+                            ].valuesLevel2[l].value = this.tagValues[i].values[
+                              j
+                            ].tagsLevel2[k].valuesLevel2[l].newValue;
+                          }
+                          this.tagValues[i].values[j].added = false;
+                          this.tagValues[i].values[j].edited = false;
+                          this.tagValues[i].values[j].tagsLevel2[
+                            k
+                          ].valuesLevel2[l].added = false;
+                          this.tagValues[i].values[j].tagsLevel2[
+                            k
+                          ].valuesLevel2[l].edited = false;
+                        } else if (
+                          this.tagValues[i].values[j].tagsLevel2[k]
+                            .valuesLevel2[l].edited &&
+                          !this.tagValues[i].values[j].tagsLevel2[k]
+                            .valuesLevel2[l].deleted
+                        ) {
+                          this.tagValues[i].values[j].tagsLevel2[
+                            k
+                          ].valuesLevel2[l].value = this.tagValues[i].values[
+                            j
+                          ].tagsLevel2[k].valuesLevel2[l].newValue;
+                          this.tagValues[i].values[j].added = false;
+                          this.tagValues[i].values[j].edited = false;
+                          this.tagValues[i].values[j].tagsLevel2[
+                            k
+                          ].valuesLevel2[l].edited = false;
+                        } else if (
+                          this.tagValues[i].values[j].tagsLevel2[k]
+                            .valuesLevel2[l].deleted
+                        ) {
+                          this.tagValues[i].values[j].tagsLevel2[
+                            k
+                          ].valuesLevel2.splice(l, 1);
+                          l--;
+                        }
                       }
-                      // const tempActive: CLActive = {
-                      //   requestTag: this.tagValues[i].tag,
-                      //   requestValue: this.tagValues[i].values[j].value,
-                      //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
-                      //   requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
-                      // };
-                      // this.operationService.addActive(tempActive).subscribe(status => {
-                      //   console.log('Status of Adding (with level 2): ' + status);
-                      // });
-                      this.tagValues[i].values[j].added = false;
-                      this.tagValues[i].values[j].edited = false;
-                      this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].added = false;
-                      this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].edited = false;
-                    } else if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].edited &&
-                      !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].deleted) {
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value =
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].newValue;
-                        // const tempActive: CLActive = {
-                        //   requestTag: this.tagValues[i].tag,
-                        //   requestValue: this.tagValues[i].values[j].value,
-                        //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
-                        //   requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
-                        // };
-                        // this.operationService.editActive(tempActive).subscribe(status => {
-                        //   console.log('Status of Editing (with level 2): ' + status);
-                        // });
-                        this.tagValues[i].values[j].added = false;
-                      this.tagValues[i].values[j].edited = false;
-                      this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].edited = false;
-                    } else if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].deleted) {
-                      // const tempActive: CLActive = {
-                      //   requestTag: this.tagValues[i].tag,
-                      //   requestValue: this.tagValues[i].values[j].value,
-                      //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
-                      //   requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
-                      // };
-                      // this.operationService.deleteActiveValue2(tempActive).subscribe(status => {
-                      //   console.log('Status of Deleting Request Value (level 2): ' + status);
-                      // });
-                      this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.splice(l, 1);
-                      l--;
+                      if (
+                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2
+                          .length === 0
+                      ) {
+                        this.tagValues[i].values[j].tagsLevel2.splice(i, 1);
+                        i--;
+                      }
                     }
                   }
-                  if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length === 0) {
-                    // const tempActive: CLActive = {
-                    //   requestTag: this.tagValues[i].tag,
-                    //   requestValue: this.tagValues[i].values[j].value,
-                    //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
-                    //   requestValueLevel2: null
-                    // };
-                    // this.operationService.deleteActiveTag2(tempActive).subscribe(status => {
-                    //   console.log('Status of Deleting Request Tag (level 2): ' + status);
-                    // });
-                    this.tagValues[i].values[j].tagsLevel2.splice(i, 1);
-                    i--;
+                }
+
+                if (
+                  this.tagValues[i].values[j].added &&
+                  !this.tagValues[i].values[j].deleted
+                ) {
+                  if (
+                    this.tagValues[i].values[j].newValue !==
+                    this.tagValues[i].values[j].value
+                  ) {
+                    this.tagValues[i].values[j].value = this.tagValues[
+                      i
+                    ].values[j].newValue;
+                  }
+                  this.tagValues[i].values[j].added = false;
+                  this.tagValues[i].values[j].edited = false;
+                } else if (
+                  this.tagValues[i].values[j].edited &&
+                  !this.tagValues[i].values[j].deleted
+                ) {
+                  this.tagValues[i].values[j].value = this.tagValues[i].values[
+                    j
+                  ].newValue;
+                  this.tagValues[i].values[j].edited = false;
+                }
+              }
+            }
+            if (this.tagValues[i].values.length === 0) {
+              this.tagValues.splice(i, 1);
+              i--;
+            }
+          }
+        }
+        this.modifiedTagValues = this.tagValues;
+      }
+    });
+  }
+
+  showChanges() {
+
+    this.findNewChanges();
+    console.log(this.newChanges);
+
+    const dialogRef = this.dialog.open(ListModalComponent, {
+      panelClass: ['list-dialog'],
+      position: { top: '20%' },
+      data: {
+        changes: this.changes,
+        newChanges: this.newChanges
+      },
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== null) {
+        this.search(result.requestTag);
+      }
+    });
+  }
+
+  findNewChanges() {
+    this.newChanges = [];
+    for (let i = 0; i < this.tagValues.length; i++) {
+      if (this.tagValues[i].deleted) {
+        const tempChange: CLChange = {
+          id: null,
+          action: 'Deleted',
+          requestTag: this.tagValues[i].tag,
+          requestValue: '*',
+          requestTagLevel2: null,
+          requestValueLevel2: null,
+          dateLog: this.dateCalcNew(this.tagValues[i].date),
+          edited: null
+        };
+        this.newChanges.push(tempChange);
+      } else {
+        for (let j = 0; j < this.tagValues[i].values.length; j++) {
+          if (
+            this.tagValues[i].values[j].added &&
+            !this.tagValues[i].values[j].edited &&
+            !this.tagValues[i].values[j].deleted
+          ) {
+            const tempChange: CLChange = {
+              id: null,
+              action: 'Added',
+              requestTag: this.tagValues[i].tag,
+              requestValue: this.tagValues[i].values[j].value,
+              requestTagLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              requestValueLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
+              edited: null
+            };
+            this.newChanges.push(tempChange);
+          } else if (
+            this.tagValues[i].values[j].edited &&
+            !this.tagValues[i].values[j].deleted
+          ) {
+            const tempChange: CLChange = {
+              id: null,
+              action: 'Deleted',
+              requestTag: this.tagValues[i].tag,
+              requestValue: this.tagValues[i].values[j].value,
+              requestTagLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              requestValueLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
+              edited: null
+            };
+            const tempChange2: CLChange = {
+              id: null,
+              action: 'Added',
+              requestTag: this.tagValues[i].tag,
+              requestValue: this.tagValues[i].values[j].newValue,
+              requestTagLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              requestValueLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
+              edited: null
+            };
+            this.newChanges.push(tempChange);
+            this.newChanges.push(tempChange2);
+          } else if (this.tagValues[i].values[j].deleted) {
+            const tempChange: CLChange = {
+              id: null,
+              action: 'Deleted',
+              requestTag: this.tagValues[i].tag,
+              requestValue: this.tagValues[i].values[j].value,
+              requestTagLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              requestValueLevel2:
+                this.tagValues[i].values[j].tagsLevel2 !== null &&
+                this.tagValues[i].values[j].tagsLevel2.length !== 0
+                  ? '*'
+                  : null,
+              dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
+              edited: null
+            };
+            this.newChanges.push(tempChange);
+          }
+          if (
+            this.tagValues[i].values[j].tagsLevel2 !== null &&
+            this.tagValues[i].values[j].tagsLevel2.length !== 0
+          ) {
+            for (
+              let k = 0;
+              k < this.tagValues[i].values[j].tagsLevel2.length;
+              k++
+            ) {
+              if (this.tagValues[i].values[j].tagsLevel2[k].deleted) {
+                const tempChange: CLChange = {
+                  id: null,
+                  action: 'Deleted',
+                  requestTag: this.tagValues[i].tag,
+                  requestValue: this.tagValues[i].values[j].value,
+                  requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k]
+                    .tag,
+                  requestValueLevel2: '*',
+                  dateLog: this.dateCalcNew(this.tagValues[i].values[j].tagsLevel2[k].date),
+                  edited: null
+                };
+                this.newChanges.push(tempChange);
+              } else {
+                for (
+                  let l = 0;
+                  l <
+                  this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length;
+                  l++
+                ) {
+                  if (
+                    this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .added &&
+                    !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .edited &&
+                    !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .deleted
+                  ) {
+                    const tempChange: CLChange = {
+                      id: null,
+                      action: 'Added',
+                      requestTag: this.tagValues[i].tag,
+                      requestValue: this.tagValues[i].values[j].value,
+                      requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
+                        k
+                      ].tag,
+                      requestValueLevel2: this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].value,
+                      dateLog: this.dateCalcNew(this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].date),
+                      edited: null
+                    };
+                    this.newChanges.push(tempChange);
+                  } else if (
+                    this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .edited &&
+                    !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .deleted
+                  ) {
+                    const tempChange: CLChange = {
+                      id: null,
+                      action: 'Deleted',
+                      requestTag: this.tagValues[i].tag,
+                      requestValue: this.tagValues[i].values[j].value,
+                      requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
+                        k
+                      ].tag,
+                      requestValueLevel2: this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].value,
+                      dateLog: this.dateCalcNew(this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].date),
+                      edited: null
+                    };
+                    const tempChange2: CLChange = {
+                      id: null,
+                      action: 'Added',
+                      requestTag: this.tagValues[i].tag,
+                      requestValue: this.tagValues[i].values[j].newValue,
+                      requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
+                        k
+                      ].tag,
+                      requestValueLevel2: this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].value,
+                      dateLog: this.dateCalcNew(this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].date),
+                      edited: null
+                    };
+                    this.newChanges.push(tempChange);
+                    this.newChanges.push(tempChange2);
+                  } else if (
+                    this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
+                      .deleted
+                  ) {
+                    const tempChange: CLChange = {
+                      id: null,
+                      action: 'Deleted',
+                      requestTag: this.tagValues[i].tag,
+                      requestValue: this.tagValues[i].values[j].value,
+                      requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
+                      requestValueLevel2: this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].value,
+                      dateLog: this.dateCalcNew(this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].date),
+                      edited: null
+                    };
+                    this.newChanges.push(tempChange);
                   }
                 }
               }
             }
-
-            if (this.tagValues[i].values[j].added && !this.tagValues[i].values[j].deleted) {
-              if (this.tagValues[i].values[j].newValue !== this.tagValues[i].values[j].value) {
-                this.tagValues[i].values[j].value =
-                this.tagValues[i].values[j].newValue;
-              }
-              // const tempActive: CLActive = {
-              //   requestTag: this.tagValues[i].tag,
-              //   requestValue: this.tagValues[i].values[j].value,
-              //   requestTagLevel2: null,
-              //   requestValueLevel2: null
-              // };
-              // this.operationService.addActive(tempActive).subscribe(status => {
-              //   console.log('Status of Adding: ' + status);
-              // });
-              this.tagValues[i].values[j].added = false;
-              this.tagValues[i].values[j].edited = false;
-            } else if (this.tagValues[i].values[j].edited && !this.tagValues[i].values[j].deleted) {
-              this.tagValues[i].values[j].value =
-              this.tagValues[i].values[j].newValue;
-              // const tempActive: CLActive = {
-              //   requestTag: this.tagValues[i].tag,
-              //   requestValue: this.tagValues[i].values[j].value,
-              //   requestTagLevel2: null,
-              //   requestValueLevel2: null
-              // };
-              // this.operationService.editActive(tempActive).subscribe(status => {
-              //   console.log('Status of Editing: ' + status);
-              // });
-              this.tagValues[i].values[j].edited = false;
-            }
           }
-        }
-        if (this.tagValues[i].values.length === 0) {
-        // const tempActive: CLActive = {
-        //   requestTag: this.tagValues[i].tag,
-        //   requestValue: null,
-        //   requestTagLevel2: null,
-        //   requestValueLevel2: null
-        // };
-        // this.operationService.deleteActiveTag(tempActive).subscribe(status => {
-        //   console.log('Status of Deleting Request Tag: ' + status);
-        // });
-          this.tagValues.splice(i, 1);
-          i--;
         }
       }
     }
-    this.modifiedTagValues = this.tagValues;
   }
 
   search(input: string) {
@@ -746,21 +982,46 @@ export class AppComponent {
           continue;
         }
         for (let j = 0; j < this.tagValues[i].values.length; j++) {
-          if (this.tagValues[i].values[j].value.toLowerCase().includes(input.toLowerCase()) && !found) {
+          if (
+            this.tagValues[i].values[j].value
+              .toLowerCase()
+              .includes(input.toLowerCase()) &&
+            !found
+          ) {
             this.modifiedTagValues.push(this.tagValues[i]);
             found = true;
             continue;
           }
           if (this.tagValues[i].values[j].tagsLevel2) {
-            for (let k = 0; k < this.tagValues[i].values[j].tagsLevel2.length; k++) {
-              if (this.tagValues[i].values[j].tagsLevel2[k].tag.toLowerCase().includes(input.toLowerCase()) && !found) {
+            for (
+              let k = 0;
+              k < this.tagValues[i].values[j].tagsLevel2.length;
+              k++
+            ) {
+              if (
+                this.tagValues[i].values[j].tagsLevel2[k].tag
+                  .toLowerCase()
+                  .includes(input.toLowerCase()) &&
+                !found
+              ) {
                 this.modifiedTagValues.push(this.tagValues[i]);
                 found = true;
                 continue;
               }
-              for (let l = 0; l < this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length; l++) {
-                if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value.toLowerCase().includes(input.toLowerCase())
-                && !found) {
+              for (
+                let l = 0;
+                l <
+                this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length;
+                l++
+              ) {
+                if (
+                  this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[
+                    l
+                  ].value
+                    .toLowerCase()
+                    .includes(input.toLowerCase()) &&
+                  !found
+                ) {
                   this.modifiedTagValues.push(this.tagValues[i]);
                   continue;
                 }
@@ -770,42 +1031,71 @@ export class AppComponent {
         }
       }
     }
-}
+  }
 
-searchEnter(checked: boolean) {
-  this.allSearch = checked;
-  this.previous = this.input;
-  this.input = '';
+  searchEnter(checked: boolean) {
+    this.previous = this.input;
+    this.input = '';
 
-  if (this.previous === '') {
-    this.modifiedTagValues = this.tagValues;
-  } else {
-    this.modifiedTagValues = [];
-    for (let i = 0; i < this.tagValues.length; i++) {
-      let found = false;
-      if (this.tagValues[i].tag.toLowerCase().includes(this.previous.toLowerCase())) {
-        this.modifiedTagValues.push(this.tagValues[i]);
-        found = true;
-        continue;
-      }
-      for (let j = 0; j < this.tagValues[i].values.length; j++) {
-        if (this.tagValues[i].values[j].value.toLowerCase().includes(this.previous.toLowerCase()) && !found) {
+    if (this.previous === '') {
+      this.modifiedTagValues = this.tagValues;
+    } else {
+      this.modifiedTagValues = [];
+      for (let i = 0; i < this.tagValues.length; i++) {
+        let found = false;
+        if (
+          this.tagValues[i].tag
+            .toLowerCase()
+            .includes(this.previous.toLowerCase())
+        ) {
           this.modifiedTagValues.push(this.tagValues[i]);
           found = true;
           continue;
         }
-        if (this.tagValues[i].values[j].tagsLevel2) {
-          for (let k = 0; k < this.tagValues[i].values[j].tagsLevel2.length; k++) {
-            if (this.tagValues[i].values[j].tagsLevel2[k].tag.toLowerCase().includes(this.previous.toLowerCase()) && !found) {
-              this.modifiedTagValues.push(this.tagValues[i]);
-              found = true;
-              continue;
-            }
-            for (let l = 0; l < this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length; l++) {
-              if (this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value.toLowerCase().includes(this.previous.toLowerCase())
-              && !found) {
+        for (let j = 0; j < this.tagValues[i].values.length; j++) {
+          if (
+            this.tagValues[i].values[j].value
+              .toLowerCase()
+              .includes(this.previous.toLowerCase()) &&
+            !found
+          ) {
+            this.modifiedTagValues.push(this.tagValues[i]);
+            found = true;
+            continue;
+          }
+          if (this.tagValues[i].values[j].tagsLevel2) {
+            for (
+              let k = 0;
+              k < this.tagValues[i].values[j].tagsLevel2.length;
+              k++
+            ) {
+              if (
+                this.tagValues[i].values[j].tagsLevel2[k].tag
+                  .toLowerCase()
+                  .includes(this.previous.toLowerCase()) &&
+                !found
+              ) {
                 this.modifiedTagValues.push(this.tagValues[i]);
+                found = true;
                 continue;
+              }
+              for (
+                let l = 0;
+                l <
+                this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length;
+                l++
+              ) {
+                if (
+                  this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[
+                    l
+                  ].value
+                    .toLowerCase()
+                    .includes(this.previous.toLowerCase()) &&
+                  !found
+                ) {
+                  this.modifiedTagValues.push(this.tagValues[i]);
+                  continue;
+                }
               }
             }
           }
@@ -813,12 +1103,12 @@ searchEnter(checked: boolean) {
       }
     }
   }
-}
-
 
   @HostListener('window:scroll', ['$event'])
   onWindowScroll(e) {
-    if (window.pageYOffset > 0) {
+    const header = document.getElementById('navbar');
+    const sticky = header.offsetTop;
+    if (window.pageYOffset > sticky * 15) {
       const element = document.getElementById('navbar');
       element.classList.add('sticky');
     } else {
@@ -836,5 +1126,39 @@ searchEnter(checked: boolean) {
       a.download = 'CL_Request_Non-Static_Values_CLS.xlsx';
       a.click();
     });
+  }
+
+  dateCalcNew(currentDate: Date): string {
+    let date = '';
+    date = date + currentDate.getDate() + '-';
+    if (currentDate.getMonth() === 0) {
+      date = date + 'Jan';
+    } else if (currentDate.getMonth() === 1) {
+      date = date + 'Feb';
+    } else if (currentDate.getMonth() === 2) {
+      date = date + 'Mar';
+    } else if (currentDate.getMonth() === 3) {
+      date = date + 'Apr';
+    } else if (currentDate.getMonth() === 4) {
+      date = date + 'May';
+    } else if (currentDate.getMonth() === 5) {
+      date = date + 'Jun';
+    } else if (currentDate.getMonth() === 6) {
+      date = date + 'Jul';
+    } else if (currentDate.getMonth() === 7) {
+      date = date + 'Aug';
+    } else if (currentDate.getMonth() === 8) {
+      date = date + 'Sep';
+    } else if (currentDate.getMonth() === 9) {
+      date = date + 'Oct';
+    } else if (currentDate.getMonth() === 10) {
+      date = date + 'Nov';
+    } else {
+      date = date + 'Dec';
+    }
+    date = date + '-';
+    const year = '' + currentDate.getFullYear();
+    date = date + year.substr(year.length - 2, 2) + ' ';
+    return date + currentDate.getHours() + ':' + currentDate.getMinutes() + ':' + currentDate.getSeconds();
   }
 }

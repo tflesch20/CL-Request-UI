@@ -45,6 +45,14 @@
   color: white;
 }
 
+.list-dialog .mat-dialog-container{
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  border-radius: 10px;
+  max-width: 1400px;
+  background: rgb(95,95,140);
+  color: white;
+}
+
 .dialogButton {
   font-family:Verdana, Geneva, Tahoma, sans-serif;
   font-size:12px;
