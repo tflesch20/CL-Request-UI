@@ -59,9 +59,6 @@ export class AppComponent {
 
   getCLRequestActives() {
     this.operationService.getActives().subscribe(acts => {
-      // acts - list of all records in Request Table sorted alphabetically accordingly to request tag,
-      // request value (if request tag the same), request tag level 2 (if request value the same), and
-      // request value level 2 (if request tag level 2 the same)
       this.tagValues = [];
       let previous = '';
       let previousCount = -1;
@@ -210,7 +207,7 @@ export class AppComponent {
           }
         }
       }
-      this.modifiedTagValues = this.tagValues; // shown modified record is the current list of records at the beginning
+      this.modifiedTagValues = this.tagValues;
     });
   }
 
@@ -237,7 +234,6 @@ export class AppComponent {
       }
 
       this.addToAutoComplete(result.requestTag, result.requestTagLevel2);
-      // add new request tag and request tag level 2 to arrays used for autocomplete if new values
 
       const tempTag: string = result.requestTag.trim().toLowerCase();
       for (let i = 0; i < this.tagValues.length; i++) {
@@ -547,19 +543,18 @@ export class AppComponent {
       tag1_2.values.push(val1_4);
       this.tagValues.push(tag1_2);
       this.addToModified(this.tagValues.length - 1, result.requestTag);
-      return;
     });
   }
 
   addToModified(index: number, requestTag: string) {
     for (let i = 0; i < this.modifiedTagValues.length; i++) {
       if (
-        // if request tag already in modified tag values
+        // if request tag is already in modified tag values
         this.modifiedTagValues[i].tag.toLowerCase() === requestTag.toLowerCase()
       ) {
         return;
       } else if (
-        // if request tag not already in modified tag values
+        // if request tag is not already in modified tag values
         this.modifiedTagValues[i].tag
           .toLowerCase()
           .localeCompare(requestTag.toLowerCase()) > 0
@@ -575,11 +570,11 @@ export class AppComponent {
     let foundTag = false;
     for (let i = 0; i < this.tags.length; i++) {
       if (requestTag.toLowerCase() === this.tags[i].toLowerCase()) {
-        // if request tag already in array of autocomplete values
+        // if request tag is already in array of autocomplete values
         foundTag = true;
         break;
       } else if (
-        // if request tag not already in array of autocomplete values
+        // if request tag is not already in array of autocomplete values
         requestTag.toLowerCase().localeCompare(this.tags[i].toLowerCase()) < 0
       ) {
         this.tags.splice(i, 0, requestTag);
@@ -591,16 +586,20 @@ export class AppComponent {
       this.tags.push(requestTag);
     }
 
+    if (requestTagLevel2 === '') {
+      return;
+    }
+
     for (let i = 0; i < this.tagsLevel2.length; i++) {
       if (requestTagLevel2.toLowerCase() === this.tagsLevel2[i].toLowerCase()) {
-        // if request tag level 2 already in array of autocomplete values
+        // if request tag level 2 is already in array of autocomplete values
         return;
       } else if (
         requestTagLevel2
           .toLowerCase()
           .localeCompare(this.tagsLevel2[i].toLowerCase()) < 0
       ) {
-        // if request tag level 2 not already in array of autocomplete values
+        // if request tag level 2 is not already in array of autocomplete values
         this.tagsLevel2.splice(i, 0, requestTagLevel2);
         return;
       }
@@ -609,7 +608,7 @@ export class AppComponent {
   }
 
   saveChanges() {
-    this.findNewChanges(); // finds all changes that have occurred in tag value data structure
+    this.findNewChanges();
 
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
       panelClass: ['list-dialog'],
@@ -626,7 +625,7 @@ export class AppComponent {
         // if confirmed saving changes
         for (let i = 0; i < this.newChanges.length; i++) {
           // push all NEW UNSAVED changes to OLD SAVED changes
-          // also where want to add to change log
+          // also where want to add new changes to change log
           this.newChanges[i].dateLog = this.newChanges[i].dateLog.substring(
             0,
             this.newChanges[i].dateLog.indexOf(' ')
@@ -831,7 +830,7 @@ export class AppComponent {
                   this.tagValues[i].values[j].added &&
                   !this.tagValues[i].values[j].deleted
                 ) {
-                  //
+                  // if added or edited request value but did not delete request value
                   if (
                     this.tagValues[i].values[j].newValue !==
                     this.tagValues[i].values[j].value
@@ -842,7 +841,7 @@ export class AppComponent {
                   }
                   this.tagValues[i].values[j].added = false;
                   this.tagValues[i].values[j].edited = false;
-                } else if (
+                } else if ( // if edited existing request value and did not delete request value
                   this.tagValues[i].values[j].edited &&
                   !this.tagValues[i].values[j].deleted
                 ) {
@@ -853,15 +852,13 @@ export class AppComponent {
                 }
               }
             }
-            if (this.tagValues[i].values.length === 0) {
+            if (this.tagValues[i].values.length === 0) { // if request tag does not have any more request value entries
               this.tagValues.splice(i, 1);
               i--;
             }
           }
         }
-        this.modifiedTagValues = this.tagValues;
-        this.previous = '';
-        this.search('');
+        this.search(this.previous);
       }
     });
   }
@@ -880,7 +877,7 @@ export class AppComponent {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result !== null) {
+      if (result !== null) { // search for request tag record that was changed if clicked view button for change row
         this.search(result.requestTag);
       }
     });
@@ -889,26 +886,28 @@ export class AppComponent {
   findNewChanges() {
     this.newChanges = [];
     for (let i = 0; i < this.tagValues.length; i++) {
-      if (this.tagValues[i].deleted) {
-        const tempChange: Change = {
-          action: 'Deleted',
-          requestTag: this.tagValues[i].tag,
-          requestValue: '*',
-          requestTagLevel2: '*',
-          requestValueLevel2: '*',
-          dateLog: this.dateCalcNew(this.tagValues[i].date),
-          requestTagIndex: i,
-          requestValueIndex: null,
-          requestTag2Index: null
-        };
-        this.newChanges.push(tempChange);
+      if (this.tagValues[i].deleted) { // if deleted the request tag
+          if (!this.tagValues[i].added) { // add deleting request only if was already in database
+            const tempChange: Change = {
+              action: 'Deleted',
+              requestTag: this.tagValues[i].tag,
+              requestValue: '*',
+              requestTagLevel2: '*',
+              requestValueLevel2: '*',
+              dateLog: this.dateCalcNew(this.tagValues[i].date),
+              requestTagIndex: i,
+              requestValueIndex: null,
+              requestTag2Index: null
+            };
+            this.newChanges.push(tempChange);
+        }
       } else {
         for (let j = 0; j < this.tagValues[i].values.length; j++) {
           if (
             this.tagValues[i].values[j].added &&
             !this.tagValues[i].values[j].edited &&
             !this.tagValues[i].values[j].deleted
-          ) {
+          ) { // if added request value to request tag and did not edit or delete
             const tempChange: Change = {
               action: 'Added',
               requestTag: this.tagValues[i].tag,
@@ -929,29 +928,32 @@ export class AppComponent {
               requestTag2Index: null
             };
             this.newChanges.push(tempChange);
-          } else if (
-            this.tagValues[i].values[j].edited &&
-            !this.tagValues[i].values[j].deleted
+          }
+          if (
+            this.tagValues[i].values[j].edited && (!this.tagValues[i].values[j].deleted || !this.tagValues[i].values[j].added)
           ) {
-            const tempChange: Change = {
-              action: 'Deleted',
-              requestTag: this.tagValues[i].tag,
-              requestValue: this.tagValues[i].values[j].value,
-              requestTagLevel2:
-                this.tagValues[i].values[j].tagsLevel2 !== null &&
-                this.tagValues[i].values[j].tagsLevel2.length !== 0
-                  ? '*'
-                  : null,
-              requestValueLevel2:
-                this.tagValues[i].values[j].tagsLevel2 !== null &&
-                this.tagValues[i].values[j].tagsLevel2.length !== 0
-                  ? '*'
-                  : null,
-              dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
-              requestTagIndex: i,
-              requestValueIndex: j,
-              requestTag2Index: null
-            };
+            if (!this.tagValues[i].values[j].added) {
+              const tempChange: Change = {
+                action: 'Deleted',
+                requestTag: this.tagValues[i].tag,
+                requestValue: this.tagValues[i].values[j].value,
+                requestTagLevel2:
+                  this.tagValues[i].values[j].tagsLevel2 !== null &&
+                  this.tagValues[i].values[j].tagsLevel2.length !== 0
+                    ? '*'
+                    : null,
+                requestValueLevel2:
+                  this.tagValues[i].values[j].tagsLevel2 !== null &&
+                  this.tagValues[i].values[j].tagsLevel2.length !== 0
+                    ? '*'
+                    : null,
+                dateLog: this.dateCalcNew(this.tagValues[i].values[j].date),
+                requestTagIndex: i,
+                requestValueIndex: j,
+                requestTag2Index: null
+              };
+              this.newChanges.push(tempChange);
+            }
             const tempChange2: Change = {
               action: 'Added',
               requestTag: this.tagValues[i].tag,
@@ -971,13 +973,13 @@ export class AppComponent {
               requestValueIndex: j,
               requestTag2Index: null
             };
-            this.newChanges.push(tempChange);
             this.newChanges.push(tempChange2);
-          } else if (this.tagValues[i].values[j].deleted) {
+          }
+          if (this.tagValues[i].values[j].deleted && !this.tagValues[i].values[j].added) {
             const tempChange: Change = {
               action: 'Deleted',
               requestTag: this.tagValues[i].tag,
-              requestValue: this.tagValues[i].values[j].value,
+              requestValue: this.tagValues[i].values[j].edited ? this.tagValues[i].values[j].newValue : this.tagValues[i].values[j].value,
               requestTagLevel2:
                 this.tagValues[i].values[j].tagsLevel2 !== null &&
                 this.tagValues[i].values[j].tagsLevel2.length !== 0
@@ -995,7 +997,7 @@ export class AppComponent {
             };
             this.newChanges.push(tempChange);
           }
-          if (
+          if (!this.tagValues[i].values[j].deleted &&
             this.tagValues[i].values[j].tagsLevel2 !== null &&
             this.tagValues[i].values[j].tagsLevel2.length !== 0
           ) {
@@ -1005,21 +1007,23 @@ export class AppComponent {
               k++
             ) {
               if (this.tagValues[i].values[j].tagsLevel2[k].deleted) {
-                const tempChange: Change = {
-                  action: 'Deleted',
-                  requestTag: this.tagValues[i].tag,
-                  requestValue: this.tagValues[i].values[j].value,
-                  requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k]
-                    .tag,
-                  requestValueLevel2: '*',
-                  dateLog: this.dateCalcNew(
-                    this.tagValues[i].values[j].tagsLevel2[k].date
-                  ),
-                  requestTagIndex: i,
-                  requestValueIndex: j,
-                  requestTag2Index: k
-                };
-                this.newChanges.push(tempChange);
+                if (!this.tagValues[i].values[j].tagsLevel2[k].added) {
+                  const tempChange: Change = {
+                    action: 'Deleted',
+                    requestTag: this.tagValues[i].tag,
+                    requestValue: this.tagValues[i].values[j].value,
+                    requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k]
+                      .tag,
+                    requestValueLevel2: '*',
+                    dateLog: this.dateCalcNew(
+                      this.tagValues[i].values[j].tagsLevel2[k].date
+                    ),
+                    requestTagIndex: i,
+                    requestValueIndex: j,
+                    requestTag2Index: k
+                  };
+                  this.newChanges.push(tempChange);
+                }
               } else {
                 for (
                   let l = 0;
@@ -1054,30 +1058,33 @@ export class AppComponent {
                       requestTag2Index: k
                     };
                     this.newChanges.push(tempChange);
-                  } else if (
+                  }
+                  if (
                     this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
-                      .edited &&
-                    !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
-                      .deleted
+                      .edited && (!this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].added
+                      || !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].deleted)
                   ) {
-                    const tempChange: Change = {
-                      action: 'Deleted',
-                      requestTag: this.tagValues[i].tag,
-                      requestValue: this.tagValues[i].values[j].value,
-                      requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
-                        k
-                      ].tag,
-                      requestValueLevel2: this.tagValues[i].values[j]
-                        .tagsLevel2[k].valuesLevel2[l].value,
-                      dateLog: this.dateCalcNew(
-                        this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[
-                          l
-                        ].date
-                      ),
-                      requestTagIndex: i,
-                      requestValueIndex: j,
-                      requestTag2Index: k
-                    };
+                    if (!this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].added) {
+                      const tempChange: Change = {
+                        action: 'Deleted',
+                        requestTag: this.tagValues[i].tag,
+                        requestValue: this.tagValues[i].values[j].value,
+                        requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
+                          k
+                        ].tag,
+                        requestValueLevel2: this.tagValues[i].values[j]
+                          .tagsLevel2[k].valuesLevel2[l].value,
+                        dateLog: this.dateCalcNew(
+                          this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[
+                            l
+                          ].date
+                        ),
+                        requestTagIndex: i,
+                        requestValueIndex: j,
+                        requestTag2Index: k
+                      };
+                      this.newChanges.push(tempChange);
+                    }
                     const tempChange2: Change = {
                       action: 'Added',
                       requestTag: this.tagValues[i].tag,
@@ -1096,11 +1103,11 @@ export class AppComponent {
                       requestValueIndex: j,
                       requestTag2Index: k
                     };
-                    this.newChanges.push(tempChange);
                     this.newChanges.push(tempChange2);
-                  } else if (
+                  }
+                  if (
                     this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l]
-                      .deleted
+                      .deleted && !this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].added
                   ) {
                     const tempChange: Change = {
                       action: 'Deleted',
@@ -1109,8 +1116,9 @@ export class AppComponent {
                       requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[
                         k
                       ].tag,
-                      requestValueLevel2: this.tagValues[i].values[j]
-                        .tagsLevel2[k].valuesLevel2[l].value,
+                      requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].edited ?
+                      this.tagValues[i].values[j]
+                        .tagsLevel2[k].valuesLevel2[l].newValue : this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value,
                       dateLog: this.dateCalcNew(
                         this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[
                           l
@@ -1321,13 +1329,14 @@ export class AppComponent {
     date = date + '-';
     const year = '' + currentDate.getFullYear();
     date = date + year.substr(year.length - 2, 2) + ' ';
-    return (
-      date +
-      currentDate.getHours() +
-      ':' +
-      currentDate.getMinutes() +
-      ':' +
-      currentDate.getSeconds()
-    );
+    date = date + currentDate.getHours() + ':';
+    if (currentDate.getMinutes() < 10) {
+      date = date + '0';
+    }
+    date = date + currentDate.getMinutes() + ':';
+    if (currentDate.getSeconds() < 10) {
+      date = date + '0';
+    }
+    return date + currentDate.getSeconds();
   }
 }
