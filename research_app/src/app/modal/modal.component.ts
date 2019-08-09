@@ -50,7 +50,8 @@ export class ModalComponent {
           const tempValue = this.data.requestValue.trim().toLowerCase();
           for (let j = 0; j < this.data.tagValues[i].values.length; j++) {
             const otherValue = this.data.tagValues[i].values[j].value.trim().toLowerCase();
-            if (tempValue === otherValue) {
+            const newValue = this.data.tagValues[i].values[j].newValue.trim().toLowerCase();
+            if (tempValue === otherValue || tempValue === newValue) {
               if (this.data.tagValues[i].values[j].tagsLevel2 && this.data.tagValues[i].values[j].tagsLevel2.length !== 0) {
                 this.fixedLevel2 = true;
                 this.level2 = true;
@@ -70,7 +71,9 @@ export class ModalComponent {
                     for (let l = 0; l < this.data.tagValues[i].values[j].tagsLevel2[k].valuesLevel2.length; l++) {
                       const otherValue2 =
                       this.data.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value.trim().toLowerCase();
-                      if (tempValue2 === otherValue2) {
+                      const newValue2 =
+                      this.data.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].newValue.trim().toLowerCase();
+                      if (tempValue2 === otherValue2 || tempValue2 === newValue2) {
                         this.duplicate = true;
                         return;
                       } else if (tempValue2.localeCompare(otherValue2) < 0) {
