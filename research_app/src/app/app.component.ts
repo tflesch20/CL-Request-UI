@@ -729,6 +729,13 @@ export class AppComponent {
         for (let i = 0; i < this.tagValues.length; i++) {
           if (this.tagValues[i].deleted) {
             // if request tag deleted, remove from data structure
+            const clActive: CLActive = {
+              requestTag: this.tagValues[i].tag,
+              requestValue: null,
+              requestTagLevel2: null,
+              requestValueLevel2: null
+            };
+            this.operationService.deleteActiveTag(clActive).subscribe(status => {});
             this.tagValues.splice(i, 1);
             i--;
           } else {
@@ -736,6 +743,13 @@ export class AppComponent {
             for (let j = 0; j < this.tagValues[i].values.length; j++) {
               if (this.tagValues[i].values[j].deleted) {
                 // if request value deleted, remove from data structure
+                const clActive: CLActive = {
+                  requestTag: this.tagValues[i].tag,
+                  requestValue: this.tagValues[i].values[j].value,
+                  requestTagLevel2: null,
+                  requestValueLevel2: null
+                };
+                this.operationService.deleteActiveValue(clActive).subscribe(status => {});
                 this.tagValues[i].values.splice(j, 1);
                 j--;
               } else {
@@ -748,6 +762,13 @@ export class AppComponent {
                   ) {
                     if (this.tagValues[i].values[j].tagsLevel2[k].deleted) {
                       // if request tag level 2 deleted, remove from data structure
+                      // const clActive: CLActive = {
+                      //   requestTag: this.tagValues[i].tag,
+                      //   requestValue: this.tagValues[i].values[j].value,
+                      //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
+                      //   requestValueLevel2: null
+                      // };
+                      // this.operationService.deleteActiveTag2(clActive).subscribe(status => {});
                       this.tagValues[i].values[j].tagsLevel2.splice(k, 1);
                       k--;
                     } else {
@@ -778,6 +799,13 @@ export class AppComponent {
                               j
                             ].tagsLevel2[k].valuesLevel2[l].newValue;
                           }
+                          const clActive: CLActive = {
+                            requestTag: this.tagValues[i].tag,
+                            requestValue: this.tagValues[i].values[j].value,
+                            requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
+                            requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
+                          };
+                          this.operationService.addActive(clActive).subscribe(status => {});
                           this.tagValues[i].values[j].added = false;
                           this.tagValues[i].values[j].edited = false;
                           this.tagValues[i].values[j].tagsLevel2[
@@ -798,6 +826,13 @@ export class AppComponent {
                           ].valuesLevel2[l].value = this.tagValues[i].values[
                             j
                           ].tagsLevel2[k].valuesLevel2[l].newValue;
+                          // const clActive: CLActive = {
+                          //   requestTag: this.tagValues[i].tag,
+                          //   requestValue: this.tagValues[i].values[j].value,
+                          //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
+                          //   requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
+                          // };
+                          // this.operationService.editActive(clActive).subscribe(status => {});
                           this.tagValues[i].values[j].added = false;
                           this.tagValues[i].values[j].edited = false;
                           this.tagValues[i].values[j].tagsLevel2[
@@ -808,6 +843,13 @@ export class AppComponent {
                             .valuesLevel2[l].deleted
                         ) {
                           // if deleted existing request value level 2
+                          // const clActive: CLActive = {
+                          //   requestTag: this.tagValues[i].tag,
+                          //   requestValue: this.tagValues[i].values[j].value,
+                          //   requestTagLevel2: this.tagValues[i].values[j].tagsLevel2[k].tag,
+                          //   requestValueLevel2: this.tagValues[i].values[j].tagsLevel2[k].valuesLevel2[l].value
+                          // };
+                          // this.operationService.deleteActiveValue2(clActive).subscribe(status => {});
                           this.tagValues[i].values[j].tagsLevel2[
                             k
                           ].valuesLevel2.splice(l, 1);
@@ -839,12 +881,26 @@ export class AppComponent {
                       i
                     ].values[j].newValue;
                   }
+                  const clActive: CLActive = {
+                    requestTag: this.tagValues[i].tag,
+                    requestValue: this.tagValues[i].values[j].value,
+                    requestTagLevel2: null,
+                    requestValueLevel2: null
+                  };
+                  this.operationService.addActive(clActive).subscribe(status => {});
                   this.tagValues[i].values[j].added = false;
                   this.tagValues[i].values[j].edited = false;
                 } else if ( // if edited existing request value and did not delete request value
                   this.tagValues[i].values[j].edited &&
                   !this.tagValues[i].values[j].deleted
                 ) {
+                  // const clActive: CLActive = {
+                  //   requestTag: this.tagValues[i].tag,
+                  //   requestValue: this.tagValues[i].values[j].value,
+                  //   requestTagLevel2: null,
+                  //   requestValueLevel2: null
+                  // };
+                  // this.operationService.editActive(clActive).subscribe(status => {});
                   this.tagValues[i].values[j].value = this.tagValues[i].values[
                     j
                   ].newValue;
