@@ -131,7 +131,6 @@ public class Operations extends Jooby {
 
 		post("/edit/CLRequestActive", req -> {
 			CLActive existingCLActive = req.body().to(CLActive.class);
-			existingCLActive.setEdited(1);
 			try {
 				return require(UnitOfWork.class).apply(em -> {
 					em.update(existingCLActive);
@@ -190,7 +189,7 @@ public class Operations extends Jooby {
 				return require(UnitOfWork.class).apply(em -> {
 					String request_tag = items.get("requestTag").toString();
 					String request_value = items.get("requestValue").toString();
-					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = :requestTag && requestValue = :requestValue").setParameter("requestTag", request_tag).setParameter("requestValue", request_value).executeUpdate();
+					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = :requestTag and requestValue = :requestValue").setParameter("requestTag", request_tag).setParameter("requestValue", request_value).executeUpdate();
 					return dbDeleteSuccess;
 				});
 			}
@@ -212,7 +211,7 @@ public class Operations extends Jooby {
 					String request_tag = items.get("requestTag").toString();
 					String request_value = items.get("requestValue").toString();
 					String request_tag_level2 = items.get("requestTagLevel2").toString();
-					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = " + request_tag + " && requestValue = " + request_value + " && requestTagLevel2 = " + request_tag_level2).executeUpdate();
+					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = " + request_tag + " and requestValue = " + request_value + " and requestTagLevel2 = " + request_tag_level2).executeUpdate();
 					return dbDeleteSuccess;
 				});
 			}
@@ -235,7 +234,7 @@ public class Operations extends Jooby {
 					String request_value = items.get("requestValue").toString();
 					String request_tag_level2 = items.get("requestTagLevel2").toString();
 					String request_value_level2 = items.get("requestValueLevel2").toString();
-					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = " + request_tag + " && requestValue = " + request_value + " && requestTagLevel2 = " + request_tag_level2 + " && requestValueLevel2 = " + request_value_level2).executeUpdate();
+					em.createQuery("delete from " + CLActive.class.getName() + " where requestTag = " + request_tag + " and requestValue = " + request_value + " and requestTagLevel2 = " + request_tag_level2 + " and requestValueLevel2 = " + request_value_level2).executeUpdate();
 					return dbDeleteSuccess;
 				});
 			}
